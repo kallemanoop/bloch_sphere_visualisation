@@ -1,0 +1,61 @@
+---
+title: "Conversion and Visualisation of Quantum Bits and Spherical Coordinates via Bloch Sphere"
+author: "Anoop Reddy, Abhiram Akella, Kailash Sriram and Athreya Bhat"
+date: "2024-04-08"
+output: html_document
+---
+
+```{r}
+library(rgl)
+
+# Function to convert qubit coefficients to spherical coordinates
+qubit_to_spherical <- function(alpha, beta) {
+  # Calculate azimuthal angle (phi)
+  phi <- atan2(Im(beta), Re(beta)) - atan2(Im(alpha), Re(alpha))
+  phi_degrees <- phi * 180 / pi  # Convert radians to degrees
+  
+  # Calculate polar angle (theta)
+  theta <- 2 * acos(Mod(alpha))
+  theta_degrees <- theta * 180 / pi  # Convert radians to degrees
+  
+  return(list(phi_degrees = phi_degrees, theta_degrees = theta_degrees))
+}
+
+# Generate random alpha and beta coefficients for multiple qubits
+num_qubits <- 10  # Number of qubits
+alpha_list <- complex(real = runif(num_qubits), imaginary = runif(num_qubits))
+beta_list <- sqrt(1 - Mod(alpha_list)^2) * exp(1i * runif(num_qubits, 0, 2*pi))
+
+# Open 3D plot
+open3d()
+
+# Plot Bloch spheres for each qubit
+for (i in 1:num_qubits) {
+  spherical_coords <- qubit_to_spherical(alpha_list[i], beta_list[i])
+  phi_degrees <- spherical_coords$phi_degrees
+  theta_degrees <- spherical_coords$theta_degrees
+  
+  # Draw the Bloch sphere
+  rgl.spheres(0, 0, 0, radius = 1, color = "lightblue", alpha = 0.5)
+  
+  # Convert spherical coordinates to Cartesian coordinates
+  phi <- phi_degrees * pi / 180
+  theta <- theta_degrees * pi / 180
+  x <- sin(theta) * cos(phi)
+  y <- sin(theta) * sin(phi)
+  z <- cos(theta)
+  
+  # Plot the point on the Bloch sphere
+  points3d(x, y, z, col = "red", size = 10)
+  
+  # Add labels
+  text3d(x, y, z, texts = "State", adj = c(0, -0.5), color = "red", cex = 1.5)
+}
+
+# Add axes
+axes3d(col = "black", tick = TRUE)
+
+play3d(spin3d(axis=c(0,0,1),rpm=5),duration=1000)
+
+```
+
